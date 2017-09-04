@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # Buffer Overflow Toolkit
-# @author Elijah Seymour
+# author: Elijah Seymour
 # 
 # Just a simple toolkit to assist me in detecting and exploiting buffer overflows
 # Todo: more automation, egghunting, automatic payloads, class system
